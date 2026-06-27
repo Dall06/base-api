@@ -1,0 +1,445 @@
+name: Build & Push Docker Images
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'gateway/v*'
+      - 'companies/v*'
+      - 'gym/v*'
+      - 'provisioner/v*'
+      - 'agent/v*'
+      - 'pie/v*'
+      - 'sch/v*'
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: 'Build all services'
+        required: false
+        default: true
+        type: boolean
+      service:
+        description: 'Specific service to build (if not building all)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - gateway
+          - companies
+          - gym
+          - provisioner
+          - agent
+          - pie
+          - sch
+
+jobs:
+  # ============================================
+  # DETECTAR QUÉ CONSTRUIR
+  # ============================================
+  detect:
+    name: Detect Build Target
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      gateway: ${{ steps.check.outputs.gateway }}
+      companies: ${{ steps.check.outputs.companies }}
+      gym: ${{ steps.check.outputs.gym }}
+      provisioner: ${{ steps.check.outputs.provisioner }}
+      agent: ${{ steps.check.outputs.agent }}
+      pie: ${{ steps.check.outputs.pie }}
+      sch: ${{ steps.check.outputs.sch }}
+      any_service: ${{ steps.check.outputs.any_service }}
+      is_tag: ${{ steps.check.outputs.is_tag }}
+      tag_version: ${{ steps.check.outputs.tag_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect file changes (for branch pushes)
+        if: github.ref_type != 'tag' && github.event_name != 'workflow_dispatch'
+        uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            core:
+              - '.github/workflows/**'
+              - 'Dockerfile'
+            shared:
+              - 'pkg/**'
+              - 'opt/**'
+              - 'scripts/**'
+              - 'go.mod'
+              - 'go.sum'
+            gateway:
+              - 'cmd/gateway/**'
+              - 'srv/gateway/**'
+            companies:
+              - 'cmd/companies/**'
+              - 'srv/companies/**'
+              - 'srv/provisioner/**'
+            gym:
+              - 'cmd/gym/**'
+              - 'srv/gym/**'
+            provisioner:
+              - 'cmd/provisioner/**'
+              - 'srv/provisioner/**'
+            agent:
+              - 'cmd/agent/**'
+              - 'srv/agent/**'
+            pie:
+              - 'cmd/pie/**'
+              - 'srv/pie/**'
+            sch:
+              - 'cmd/sch/**'
+              - 'srv/sch/**'
+
+      - name: Set outputs
+        id: check
+        env:
+          FORCE_BUILD_ALL: ${{ vars.FORCE_BUILD_ALL }}
+        run: |
+          # Default values
+          GATEWAY="false"
+          COMPANIES="false"
+          GYM="false"
+          PROVISIONER="false"
+          AGENT="false"
+          PIE="false"
+          SCH="false"
+          IS_TAG="false"
+          TAG_VERSION=""
+          ANY_SERVICE="false"
+
+          # Check repository variable FORCE_BUILD_ALL
+          if [[ "$FORCE_BUILD_ALL" == "true" ]]; then
+            GATEWAY="true"
+            COMPANIES="true"
+            GYM="true"
+            PROVISIONER="true"
+            AGENT="true"
+            PIE="true"
+            SCH="true"
+            ANY_SERVICE="true"
+            echo "FORCE_BUILD_ALL=true - building ALL services"
+          # Manual workflow dispatch
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ inputs.build_all }}" == "true" ]]; then
+              GATEWAY="true"
+              COMPANIES="true"
+              GYM="true"
+              PROVISIONER="true"
+              AGENT="true"
+              PIE="true"
+              SCH="true"
+              ANY_SERVICE="true"
+              echo "Manual build: ALL services"
+            elif [[ -n "${{ inputs.service }}" ]]; then
+              case "${{ inputs.service }}" in
+                gateway) GATEWAY="true" ;;
+                companies) COMPANIES="true" ;;
+                gym) GYM="true" ;;
+                provisioner) PROVISIONER="true" ;;
+                agent) AGENT="true" ;;
+                pie) PIE="true" ;;
+                sch) SCH="true" ;;
+              esac
+              ANY_SERVICE="true"
+              echo "Manual build: ${{ inputs.service }}"
+            fi
+          # Tag push
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            TAG="${{ github.ref_name }}"
+            IS_TAG="true"
+
+            SERVICE=$(echo "$TAG" | cut -d'/' -f1)
+            VERSION=$(echo "$TAG" | cut -d'/' -f2)
+            TAG_VERSION="$VERSION"
+
+            case "$SERVICE" in
+              gateway) GATEWAY="true" ;;
+              companies) COMPANIES="true" ;;
+              gym) GYM="true" ;;
+              provisioner) PROVISIONER="true" ;;
+              agent) AGENT="true" ;;
+              pie) PIE="true" ;;
+              sch) SCH="true" ;;
+            esac
+            ANY_SERVICE="true"
+
+            echo "Detected tag: $TAG -> Service: $SERVICE, Version: $VERSION"
+          # Branch push - check paths-filter
+          else
+            # If core or shared files changed, build ALL services
+            if [[ "${{ steps.filter.outputs.core }}" == "true" ]] || [[ "${{ steps.filter.outputs.shared }}" == "true" ]]; then
+              GATEWAY="true"
+              COMPANIES="true"
+              GYM="true"
+              PROVISIONER="true"
+              AGENT="true"
+              PIE="true"
+              SCH="true"
+              ANY_SERVICE="true"
+              if [[ "${{ steps.filter.outputs.shared }}" == "true" ]]; then
+                echo "Shared code changed (pkg/opt/go.mod) - building ALL services"
+              else
+                echo "Core files changed - building ALL services"
+              fi
+            else
+              GATEWAY="${{ steps.filter.outputs.gateway }}"
+              COMPANIES="${{ steps.filter.outputs.companies }}"
+              GYM="${{ steps.filter.outputs.gym }}"
+              PROVISIONER="${{ steps.filter.outputs.provisioner }}"
+              AGENT="${{ steps.filter.outputs.agent }}"
+              PIE="${{ steps.filter.outputs.pie }}"
+              SCH="${{ steps.filter.outputs.sch }}"
+
+              if [[ "$GATEWAY" == "true" ]] || [[ "$COMPANIES" == "true" ]] || \
+                 [[ "$GYM" == "true" ]] || [[ "$PROVISIONER" == "true" ]] || \
+                 [[ "$AGENT" == "true" ]] || [[ "$PIE" == "true" ]] || [[ "$SCH" == "true" ]]; then
+                ANY_SERVICE="true"
+              fi
+
+              echo "Detected changes: gateway=$GATEWAY companies=$COMPANIES gym=$GYM provisioner=$PROVISIONER agent=$AGENT pie=$PIE sch=$SCH"
+            fi
+          fi
+
+          # Write all outputs
+          echo "gateway=$GATEWAY" >> $GITHUB_OUTPUT
+          echo "companies=$COMPANIES" >> $GITHUB_OUTPUT
+          echo "gym=$GYM" >> $GITHUB_OUTPUT
+          echo "provisioner=$PROVISIONER" >> $GITHUB_OUTPUT
+          echo "agent=$AGENT" >> $GITHUB_OUTPUT
+          echo "pie=$PIE" >> $GITHUB_OUTPUT
+          echo "sch=$SCH" >> $GITHUB_OUTPUT
+          echo "is_tag=$IS_TAG" >> $GITHUB_OUTPUT
+          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          echo "any_service=$ANY_SERVICE" >> $GITHUB_OUTPUT
+
+  # ============================================
+  # TESTS
+  # ============================================
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: detect
+    if: needs.detect.outputs.any_service == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Run tests
+        run: |
+          go test -v -race -short -p 2 -timeout 5m -coverprofile=coverage.out ./...
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v6
+        with:
+          files: ./coverage.out
+          fail_ci_if_error: false
+
+      - name: Security scan (gosec)
+        uses: securego/gosec@master
+        with:
+          args: -exclude-generated -exclude=G204,G304,G706 ./...
+
+      - name: Vulnerability check (govulncheck)
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./... || true
+
+  # ============================================
+  # SWAGGER DOCS (auto-generate after tests pass)
+  # ============================================
+  swagger:
+    name: Swagger Docs
+    runs-on: ubuntu-latest
+    needs: [detect, test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate docs
+        run: |
+          swag init -g cmd/gateway/main.go -o cmd/gateway/docs \
+            --parseDependency --parseInternal \
+            --dir .,./srv/gateway/,./srv/companies/,./srv/gym/,./srv/agent/,./pkg/errs/ \
+            --exclude ./cmd/companies,./cmd/gym,./cmd/agent
+
+          GOFLAGS="-tags=companies" swag init -g cmd/companies/main.go -o cmd/companies/docs \
+            --parseDependency --parseInternal \
+            --dir .,./srv/companies/,./pkg/errs/ \
+            --exclude ./srv/gym,./srv/agent,./cmd/gateway,./cmd/gym,./cmd/agent
+
+          GOFLAGS="-tags=gym" swag init -g cmd/gym/main.go -o cmd/gym/docs \
+            --parseDependency --parseInternal \
+            --dir .,./srv/gym/,./pkg/errs/ \
+            --exclude ./srv/companies,./srv/agent,./cmd/gateway,./cmd/companies,./cmd/agent
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cmd/*/docs/
+          if git diff --staged --quiet; then
+            echo "No swagger changes"
+          else
+            git commit -m "docs: auto-generate swagger"
+            git push
+          fi
+
+  # ============================================
+  # BUILD GATEWAY
+  # ============================================
+  build-gateway:
+    name: Gateway
+    needs: [detect, test, swagger]
+    if: always() && needs.detect.outputs.gateway == 'true' && needs.test.result == 'success'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service: gateway
+      version: ${{ needs.detect.outputs.tag_version }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # ============================================
+  # BUILD COMPANIES
+  # ============================================
+  build-companies:
+    name: Companies
+    needs: [detect, test, swagger]
+    if: always() && needs.detect.outputs.companies == 'true' && needs.test.result == 'success'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service: companies
+      version: ${{ needs.detect.outputs.tag_version }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # ============================================
+  # BUILD GYM
+  # ============================================
+  build-gym:
+    name: Gym
+    needs: [detect, test, swagger]
+    if: always() && needs.detect.outputs.gym == 'true' && needs.test.result == 'success'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service: gym
+      version: ${{ needs.detect.outputs.tag_version }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # ============================================
+  # BUILD PROVISIONER
+  # ============================================
+  build-provisioner:
+    name: Provisioner
+    needs: [detect, test, swagger]
+    if: always() && needs.detect.outputs.provisioner == 'true' && needs.test.result == 'success'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service: provisioner
+      version: ${{ needs.detect.outputs.tag_version }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # ============================================
+  # BUILD AGENT
+  # ============================================
+  build-agent:
+    name: Agent
+    needs: [detect, test, swagger]
+    if: always() && needs.detect.outputs.agent == 'true' && needs.test.result == 'success'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service: agent
+      version: ${{ needs.detect.outputs.tag_version }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # ============================================
+  # BUILD PIE
+  # ============================================
+  build-pie:
+    name: Pie
+    needs: [detect, test, swagger]
+    if: always() && needs.detect.outputs.pie == 'true' && needs.test.result == 'success'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service: pie
+      version: ${{ needs.detect.outputs.tag_version }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # ============================================
+  # BUILD SCHEDULER
+  # ============================================
+  build-sch:
+    name: Scheduler
+    needs: [detect, test, swagger]
+    if: always() && needs.detect.outputs.sch == 'true' && needs.test.result == 'success'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service: sch
+      version: ${{ needs.detect.outputs.tag_version }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # ============================================
+  # SUMMARY
+  # ============================================
+  summary:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs: [detect, build-gateway, build-companies, build-gym, build-provisioner, build-agent, build-pie, build-sch]
+    if: always()
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.detect.outputs.is_tag }}" == "true" ]]; then
+            echo "**Tag Build**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "| Service | Built | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Gateway | ${{ needs.detect.outputs.gateway }} | ${{ needs.build-gateway.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Companies | ${{ needs.detect.outputs.companies }} | ${{ needs.build-companies.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gym | ${{ needs.detect.outputs.gym }} | ${{ needs.build-gym.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Provisioner | ${{ needs.detect.outputs.provisioner }} | ${{ needs.build-provisioner.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Agent | ${{ needs.detect.outputs.agent }} | ${{ needs.build-agent.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pie | ${{ needs.detect.outputs.pie }} | ${{ needs.build-pie.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Scheduler | ${{ needs.detect.outputs.sch }} | ${{ needs.build-sch.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY

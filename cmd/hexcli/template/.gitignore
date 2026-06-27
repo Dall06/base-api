@@ -1,0 +1,23 @@
+# Binaries
+bin/
+hexcli
+main
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Env
+.env
+.env.local
+.env.production
+.env.development
+
+# Coverage
+coverage.out
+coverage.html

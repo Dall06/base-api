@@ -1,0 +1,104 @@
+name: Build Service
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: 'Service name to build (gateway, companies, gym, provisioner, agent)'
+        required: true
+        type: string
+      version:
+        description: 'Version tag (e.g., v1.0.0). If empty, uses branch name and SHA.'
+        required: false
+        type: string
+        default: ''
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+
+jobs:
+  build:
+    name: Build ${{ inputs.service }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # Note: Swagger docs are pre-generated and committed to the repo.
+      # Run `swag init -g cmd/<service>/main.go -o cmd/<service>/docs` locally
+      # when updating API annotations.
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Generate tags
+        id: tags
+        run: |
+          IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/bro-${{ inputs.service }}"
+
+          if [[ -n "${{ inputs.version }}" ]]; then
+            # Tag build: use the specific version
+            VERSION="${{ inputs.version }}"
+            TAGS="$IMAGE:$VERSION"
+
+            # Also tag major.minor if semver
+            if [[ "$VERSION" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+              MAJOR="${BASH_REMATCH[1]}"
+              MINOR="${BASH_REMATCH[2]}"
+              TAGS="$TAGS,$IMAGE:v$MAJOR.$MINOR,$IMAGE:v$MAJOR"
+            fi
+
+            echo "tags=$TAGS" >> $GITHUB_OUTPUT
+            echo "Generated tags for version $VERSION: $TAGS"
+          else
+            # Branch build: use branch name and SHA
+            BRANCH="${GITHUB_REF_NAME}"
+            SHA="${GITHUB_SHA::7}"
+            TAGS="$IMAGE:$BRANCH,$IMAGE:$SHA"
+
+            # Add 'latest' for main/master
+            if [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
+              TAGS="$TAGS,$IMAGE:latest"
+            fi
+
+            echo "tags=$TAGS" >> $GITHUB_OUTPUT
+            echo "Generated tags for branch $BRANCH: $TAGS"
+          fi
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: ${{ inputs.service }}
+          build-args: SERVICE=${{ inputs.service }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha,scope=${{ inputs.service }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.service }}
+          platforms: linux/amd64
+
+      - name: Generate SBOM
+        if: github.event_name != 'pull_request'
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom-${{ inputs.service }}.cdx.json
+          upload-artifact: true
+
+      - name: Image info
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "## Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Service**: ${{ inputs.service }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags**: ${{ steps.tags.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
