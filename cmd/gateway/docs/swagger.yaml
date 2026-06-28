@@ -1,0 +1,3239 @@
+basePath: /api/v1
+definitions:
+  bro-api_srv_gym_domain.DashboardStatsResponse:
+    properties:
+      active_members:
+        type: integer
+      cash_register_open:
+        type: boolean
+      expiring_soon:
+        type: integer
+      inactive_members:
+        type: integer
+      pending_amount:
+        type: number
+      pending_payments:
+        type: integer
+      suspended_members:
+        type: integer
+      today:
+        $ref: '#/definitions/domain.TodayStats'
+      total_members:
+        type: integer
+    type: object
+  domain.ChangePasswordRequest:
+    properties:
+      current_password:
+        type: string
+      new_password:
+        maxLength: 72
+        minLength: 8
+        type: string
+    required:
+    - current_password
+    - new_password
+    type: object
+  domain.CheckEmailRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+    required:
+    - email
+    type: object
+  domain.CheckEmailResponse:
+    properties:
+      exists:
+        type: boolean
+      name:
+        description: first name hint so UI can greet the user
+        type: string
+    type: object
+  domain.ChurnAnalyticsResponse:
+    properties:
+      at_risk_members:
+        items:
+          $ref: '#/definitions/domain.MemberChurnRisk'
+        type: array
+      summary:
+        $ref: '#/definitions/domain.ChurnSummary'
+    type: object
+  domain.ChurnRiskLevel:
+    enum:
+    - low
+    - medium
+    - high
+    type: string
+    x-enum-varnames:
+    - ChurnRiskLow
+    - ChurnRiskMedium
+    - ChurnRiskHigh
+  domain.ChurnSummary:
+    properties:
+      churn_rate:
+        type: number
+      high_risk:
+        type: integer
+      low_risk:
+        type: integer
+      medium_risk:
+        type: integer
+      total_members:
+        type: integer
+    type: object
+  domain.CompanyListItem:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      status:
+        type: string
+    type: object
+  domain.CompanyPaymentListItem:
+    properties:
+      amount:
+        type: number
+      company_name:
+        type: string
+      id:
+        type: string
+      paid_at:
+        type: string
+      period_end:
+        type: string
+      status:
+        type: string
+    type: object
+  domain.CompanyPaymentResponse:
+    properties:
+      amount:
+        type: number
+      company_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      method:
+        type: string
+      notes:
+        type: string
+      paid_at:
+        type: string
+      period_end:
+        type: string
+      period_start:
+        type: string
+      reference:
+        type: string
+      status:
+        type: string
+      subscription_id:
+        type: string
+    type: object
+  domain.CompanyResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      owner_email:
+        type: string
+      owner_name:
+        type: string
+      owner_phone:
+        type: string
+      phone:
+        type: string
+      slug:
+        type: string
+      status:
+        type: string
+    type: object
+  domain.CompanyStaffOption:
+    properties:
+      company_id:
+        type: string
+      company_name:
+        type: string
+      company_slug:
+        type: string
+      role:
+        type: string
+      staff_id:
+        type: string
+    type: object
+  domain.CompanySubscriptionResponse:
+    properties:
+      billing_cycle:
+        type: string
+      company_id:
+        type: string
+      created_at:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: string
+      plan_id:
+        type: string
+      plan_name:
+        type: string
+      price:
+        type: number
+      start_date:
+        type: string
+      status:
+        type: string
+    type: object
+  domain.ComparativeResponse:
+    properties:
+      changes:
+        $ref: '#/definitions/domain.MetricChanges'
+      current_month:
+        $ref: '#/definitions/domain.MonthMetrics'
+      previous_month:
+        $ref: '#/definitions/domain.MonthMetrics'
+      year_ago:
+        $ref: '#/definitions/domain.MonthMetrics'
+    type: object
+  domain.CreateCompanyPaymentRequest:
+    properties:
+      amount:
+        type: number
+      method:
+        enum:
+        - transfer
+        - card
+        - cash
+        - oxxo
+        type: string
+      notes:
+        maxLength: 1000
+        type: string
+      period_end:
+        type: string
+      period_start:
+        type: string
+      reference:
+        maxLength: 255
+        type: string
+      subscription_id:
+        type: string
+    required:
+    - amount
+    - method
+    - period_end
+    - period_start
+    type: object
+  domain.CreateCompanyRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      owner_email:
+        maxLength: 255
+        type: string
+      owner_name:
+        maxLength: 255
+        type: string
+      owner_phone:
+        maxLength: 20
+        type: string
+      owner_user_id:
+        description: ID of existing user who will be owner
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      slug:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - name
+    - owner_email
+    - owner_name
+    - owner_user_id
+    - slug
+    type: object
+  domain.CreateCompanySubscriptionRequest:
+    properties:
+      billing_cycle:
+        type: string
+      plan_id:
+        type: string
+    required:
+    - billing_cycle
+    - plan_id
+    type: object
+  domain.CreateContactRequest:
+    properties:
+      email:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+    required:
+    - email
+    - message
+    - name
+    type: object
+  domain.CreateContactResponse:
+    properties:
+      folio:
+        type: string
+      message:
+        type: string
+    type: object
+  domain.CreateMemberRequest:
+    properties:
+      address:
+        maxLength: 500
+        type: string
+      amount_paid:
+        type: number
+      birth_date:
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      emergency_contact:
+        maxLength: 255
+        type: string
+      emergency_phone:
+        maxLength: 20
+        type: string
+      inscription_paid:
+        type: boolean
+      membership_paid:
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      notes:
+        maxLength: 1000
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      photo_url:
+        maxLength: 200000
+        type: string
+      plan_id:
+        description: Optional subscription (if provided, creates member + subscription
+          atomically)
+        type: string
+      start_date:
+        type: string
+    required:
+    - name
+    type: object
+  domain.CreatePlanRequest:
+    properties:
+      color:
+        maxLength: 20
+        type: string
+      description:
+        maxLength: 500
+        type: string
+      duration_days:
+        maximum: 365
+        type: integer
+      inscription_fee:
+        minimum: 0
+        type: number
+      name:
+        maxLength: 100
+        type: string
+      price:
+        minimum: 0
+        type: number
+    required:
+    - duration_days
+    - name
+    type: object
+  domain.CreateStaffRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 8
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      role:
+        description: owner|admin|staff
+        enum:
+        - owner
+        - admin
+        - staff
+        type: string
+    required:
+    - email
+    - name
+    - role
+    type: object
+  domain.DashboardStatsResponse:
+    properties:
+      active_members:
+        type: integer
+      cash_register_open:
+        type: boolean
+      expiring_soon:
+        type: integer
+      inactive_members:
+        type: integer
+      pending_amount:
+        type: number
+      pending_payments:
+        type: integer
+      suspended_members:
+        type: integer
+      today:
+        $ref: '#/definitions/domain.TodayStats'
+      total_members:
+        type: integer
+    type: object
+  domain.ForecastResponse:
+    properties:
+      growth_rate:
+        type: number
+      historical:
+        items:
+          $ref: '#/definitions/domain.MonthlyDataPoint'
+        type: array
+      projected:
+        items:
+          $ref: '#/definitions/domain.MonthlyDataPoint'
+        type: array
+      trend_direction:
+        type: string
+    type: object
+  domain.ForgotPasswordRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+    required:
+    - email
+    type: object
+  domain.LoginMultiCompanyResponse:
+    properties:
+      companies:
+        items:
+          $ref: '#/definitions/domain.CompanyStaffOption'
+        type: array
+      requires_company_selection:
+        type: boolean
+      temp_token:
+        description: Short-lived token for company selection
+        type: string
+      temp_token_expires_at:
+        type: string
+      user_id:
+        type: string
+      user_name:
+        type: string
+    type: object
+  domain.LoginRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 1
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  domain.LoginResponse:
+    properties:
+      expires_at:
+        type: string
+      staff:
+        $ref: '#/definitions/domain.StaffResponse'
+    type: object
+  domain.MarkPaymentPaidRequest:
+    properties:
+      amount:
+        description: 'Optional: verify or override the expected amount'
+        type: number
+      method:
+        enum:
+        - transfer
+        - card
+        - cash
+        - oxxo
+        type: string
+      reference:
+        maxLength: 255
+        type: string
+    type: object
+  domain.MemberChurnRisk:
+    properties:
+      days_inactive:
+        type: integer
+      expires_in:
+        type: integer
+      member_id:
+        type: string
+      member_name:
+        type: string
+      pending_amount:
+        type: number
+      risk_factors:
+        items:
+          type: string
+        type: array
+      risk_level:
+        $ref: '#/definitions/domain.ChurnRiskLevel'
+      risk_score:
+        type: integer
+    type: object
+  domain.MemberDetailResponse:
+    properties:
+      active_subscription:
+        $ref: '#/definitions/domain.SubscriptionSummary'
+      address:
+        type: string
+      birth_date:
+        type: string
+      code:
+        description: Short 5-digit code for manual entry
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      emergency_contact:
+        type: string
+      emergency_phone:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+      phone:
+        type: string
+      photo_url:
+        type: string
+      qr_code:
+        description: Long code for QR scanning
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.MemberResponse:
+    properties:
+      code:
+        description: Short 5-digit code for manual entry
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      photo_url:
+        type: string
+      qr_code:
+        description: Long code for QR scanning
+        type: string
+      status:
+        type: string
+    type: object
+  domain.MemberWithSubscription:
+    properties:
+      active_subscription:
+        $ref: '#/definitions/domain.SubscriptionSummary'
+      birth_date:
+        type: string
+      code:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      photo_url:
+        type: string
+      qr_code:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.MetricChanges:
+    properties:
+      churn_change:
+        type: number
+      income_change:
+        type: number
+      members_change:
+        type: number
+    type: object
+  domain.MonthMetrics:
+    properties:
+      active_members:
+        type: integer
+      cancellations:
+        type: integer
+      income:
+        type: number
+      label:
+        type: string
+      month:
+        type: string
+      new_members:
+        type: integer
+    type: object
+  domain.MonthlyDataPoint:
+    properties:
+      amount:
+        description: For income
+        type: number
+      count:
+        description: For registrations
+        type: integer
+      label:
+        description: 'Format: "Ene 2024"'
+        type: string
+      month:
+        description: 'Format: "2024-01"'
+        type: string
+    type: object
+  domain.MonthlyIncomeResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.MonthlyDataPoint'
+        type: array
+      total:
+        type: number
+    type: object
+  domain.MonthlyRegistrationsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.MonthlyDataPoint'
+        type: array
+      total:
+        type: integer
+    type: object
+  domain.MyCompaniesResponse:
+    properties:
+      companies:
+        items:
+          $ref: '#/definitions/domain.CompanyStaffOption'
+        type: array
+      current_company_id:
+        type: string
+    type: object
+  domain.PaginatedMembersResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.MemberWithSubscription'
+        type: array
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  domain.PaySubscriptionRequest:
+    properties:
+      amount:
+        type: number
+      payment_method:
+        enum:
+        - cash
+        - transfer
+        - card
+        type: string
+    required:
+    - amount
+    type: object
+  domain.PaymentInfo:
+    properties:
+      payment_id:
+        maxLength: 255
+        type: string
+      payment_method:
+        enum:
+        - card
+        - transfer
+        - oxxo
+        type: string
+      provider:
+        enum:
+        - stripe
+        - transfer
+        type: string
+    required:
+    - payment_method
+    - provider
+    type: object
+  domain.PaymentMethodResponse:
+    properties:
+      cycle:
+        type: string
+      duration:
+        type: string
+      installments:
+        type: integer
+      label:
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      method:
+        type: string
+      per_installment:
+        type: number
+      price:
+        type: number
+      price_per_month:
+        type: number
+      provider:
+        type: string
+      status:
+        type: string
+    type: object
+  domain.PlanClassSummary:
+    properties:
+      duration_minutes:
+        type: integer
+      id:
+        type: string
+      instructor_name:
+        type: string
+      name:
+        type: string
+      schedules:
+        items:
+          $ref: '#/definitions/domain.ScheduleSummary'
+        type: array
+    type: object
+  domain.PlanFeatureResponse:
+    properties:
+      enabled:
+        type: boolean
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  domain.PlanListItem:
+    properties:
+      class_count:
+        type: integer
+      color:
+        type: string
+      duration_days:
+        type: integer
+      id:
+        type: string
+      inscription_fee:
+        type: number
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  domain.PlanResponse:
+    properties:
+      class_count:
+        type: integer
+      classes:
+        items:
+          $ref: '#/definitions/domain.PlanClassSummary'
+        type: array
+      color:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      duration_days:
+        type: integer
+      id:
+        type: string
+      inscription_fee:
+        type: number
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  domain.PublicMemberQRResponse:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+      qr_code:
+        type: string
+    type: object
+  domain.RegisterRequest:
+    properties:
+      billing_cycle:
+        enum:
+        - monthly
+        - 3months
+        - 6months
+        - yearly
+        - annual
+        - yearly_cash
+        - forever
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      invitation_code:
+        description: 'Payment: either InvitationCode OR PaymentInfo required'
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      owner_email:
+        maxLength: 255
+        type: string
+      owner_name:
+        maxLength: 255
+        type: string
+      owner_password:
+        maxLength: 72
+        minLength: 8
+        type: string
+      owner_phone:
+        maxLength: 20
+        type: string
+      payment_info:
+        $ref: '#/definitions/domain.PaymentInfo'
+      phone:
+        maxLength: 20
+        type: string
+      plan_id:
+        description: Plan selection (required)
+        type: string
+      slug:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - name
+    - owner_email
+    - owner_name
+    - owner_password
+    - slug
+    type: object
+  domain.ReportsResponse:
+    properties:
+      income:
+        $ref: '#/definitions/domain.MonthlyIncomeResponse'
+      registrations:
+        $ref: '#/definitions/domain.MonthlyRegistrationsResponse'
+    type: object
+  domain.ResetPasswordRequest:
+    properties:
+      password:
+        maxLength: 72
+        minLength: 8
+        type: string
+      token:
+        type: string
+    required:
+    - password
+    - token
+    type: object
+  domain.SaasPlanPublicResponse:
+    properties:
+      description:
+        type: string
+      features:
+        items:
+          $ref: '#/definitions/domain.PlanFeatureResponse'
+        type: array
+      id:
+        type: string
+      max_classes:
+        type: integer
+      max_instructors:
+        type: integer
+      max_members:
+        type: integer
+      max_membership_plans:
+        type: integer
+      max_products:
+        type: integer
+      max_reservations:
+        type: integer
+      max_staff:
+        type: integer
+      monthly_price:
+        type: number
+      name:
+        type: string
+      payment_methods:
+        items:
+          $ref: '#/definitions/domain.PaymentMethodResponse'
+        type: array
+      price_3months:
+        type: number
+      price_6months:
+        type: number
+      yearly_cash_price:
+        type: number
+      yearly_price:
+        type: number
+    type: object
+  domain.ScheduleSummary:
+    properties:
+      day_name:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+    type: object
+  domain.SelectCompanyRequest:
+    properties:
+      company_id:
+        type: string
+      temp_token:
+        type: string
+    required:
+    - company_id
+    - temp_token
+    type: object
+  domain.StaffListItem:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      role:
+        type: string
+    type: object
+  domain.StaffResponse:
+    properties:
+      company_id:
+        type: string
+      company_slug:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+    type: object
+  domain.SubscriptionListItem:
+    properties:
+      end_date:
+        type: string
+      id:
+        type: string
+      left_amount:
+        type: number
+      plan_name:
+        type: string
+      start_date:
+        type: string
+      status:
+        type: string
+    type: object
+  domain.SubscriptionResponse:
+    properties:
+      amount_paid:
+        type: number
+      created_at:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: string
+      inscription_paid:
+        type: boolean
+      left_amount:
+        type: number
+      member_id:
+        type: string
+      membership_paid:
+        type: string
+      next_payment_date:
+        type: string
+      paid_through:
+        type: string
+      payment_method:
+        type: string
+      payment_status:
+        type: string
+      plan_id:
+        type: string
+      plan_name:
+        type: string
+      start_date:
+        type: string
+      status:
+        type: string
+      total_amount:
+        type: number
+    type: object
+  domain.SubscriptionSummary:
+    properties:
+      end_date:
+        type: string
+      id:
+        type: string
+      inscription_fee:
+        type: number
+      inscription_paid:
+        type: boolean
+      left_amount:
+        type: number
+      next_payment_date:
+        type: string
+      payment_status:
+        type: string
+      plan_color:
+        type: string
+      plan_id:
+        type: string
+      plan_name:
+        type: string
+      start_date:
+        type: string
+    type: object
+  domain.SwitchCompanyRequest:
+    properties:
+      company_id:
+        type: string
+    required:
+    - company_id
+    type: object
+  domain.TodayStats:
+    properties:
+      check_ins:
+        type: integer
+      expiring_soon:
+        type: integer
+      new_members:
+        type: integer
+      payments_count:
+        type: integer
+      payments_total:
+        type: number
+      revenue_card:
+        type: number
+      revenue_cash:
+        type: number
+      revenue_transfer:
+        type: number
+      sessions_today:
+        type: integer
+    type: object
+  domain.UpdateCompanyRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      owner_email:
+        maxLength: 255
+        type: string
+      owner_name:
+        maxLength: 255
+        type: string
+      owner_phone:
+        maxLength: 20
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+    required:
+    - email
+    - name
+    - owner_email
+    - owner_name
+    type: object
+  domain.UpdateCompanyStatusRequest:
+    properties:
+      status:
+        enum:
+        - pending
+        - active
+        - suspended
+        - cancelled
+        type: string
+    required:
+    - status
+    type: object
+  domain.UpdateCompanySubscriptionRequest:
+    properties:
+      billing_cycle:
+        enum:
+        - monthly
+        - 3months
+        - 6months
+        - yearly
+        - annual
+        - yearly_cash
+        - forever
+        type: string
+      plan_id:
+        type: string
+    type: object
+  domain.UpdateMemberRequest:
+    properties:
+      address:
+        maxLength: 500
+        type: string
+      amount_paid:
+        type: number
+      birth_date:
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      emergency_contact:
+        maxLength: 255
+        type: string
+      emergency_phone:
+        maxLength: 20
+        type: string
+      inscription_paid:
+        type: boolean
+      membership_paid:
+        type: string
+      name:
+        maxLength: 255
+        type: string
+      notes:
+        maxLength: 1000
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      photo_url:
+        maxLength: 200000
+        type: string
+      plan_id:
+        description: 'Optional: create new subscription for this member'
+        type: string
+      start_date:
+        type: string
+      status:
+        description: 'Optional: update member status'
+        enum:
+        - active
+        - inactive
+        - suspended
+        type: string
+    required:
+    - name
+    type: object
+  domain.UpdateMemberStatusRequest:
+    properties:
+      status:
+        enum:
+        - active
+        - inactive
+        - suspended
+        type: string
+    required:
+    - status
+    type: object
+  domain.UpdatePlanRequest:
+    properties:
+      color:
+        maxLength: 20
+        type: string
+      description:
+        maxLength: 500
+        type: string
+      duration_days:
+        maximum: 365
+        type: integer
+      inscription_fee:
+        minimum: 0
+        type: number
+      name:
+        maxLength: 100
+        type: string
+      price:
+        minimum: 0
+        type: number
+    required:
+    - duration_days
+    - name
+    type: object
+  domain.UpdateStaffRequest:
+    properties:
+      name:
+        maxLength: 255
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      role:
+        enum:
+        - owner
+        - admin
+        - staff
+        type: string
+    required:
+    - name
+    type: object
+  domain.UpgradeSubscriptionRequest:
+    properties:
+      billing_cycle:
+        type: string
+      company_id:
+        type: string
+      invitation_code:
+        type: string
+      payment_info:
+        $ref: '#/definitions/domain.PaymentInfo'
+      plan_id:
+        type: string
+    required:
+    - billing_cycle
+    - company_id
+    - plan_id
+    type: object
+  domain.ValidateInvitationCodeRequest:
+    properties:
+      code:
+        type: string
+    required:
+    - code
+    type: object
+  domain.ValidateInvitationCodeResponse:
+    properties:
+      billing_cycle:
+        type: string
+      error:
+        type: string
+      plan:
+        $ref: '#/definitions/domain.SaasPlanPublicResponse'
+      valid:
+        type: boolean
+    type: object
+  domain.VerifyMemberResponse:
+    properties:
+      access:
+        description: allow|warn|deny
+        type: string
+      end_date:
+        type: string
+      member_id:
+        type: string
+      member_name:
+        type: string
+      message:
+        type: string
+      pending_amount:
+        type: number
+      plan_name:
+        type: string
+    type: object
+  errs.Response:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.CompanySearchItem:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  staff.LoginResult:
+    properties:
+      direct_login:
+        allOf:
+        - $ref: '#/definitions/domain.LoginResponse'
+        description: If single company, these are set
+      multi_company:
+        allOf:
+        - $ref: '#/definitions/domain.LoginMultiCompanyResponse'
+        description: If multiple companies, these are set
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API Gateway for Gym Management Platform
+  title: BRO Gateway API
+  version: "1.1"
+paths:
+  /analytics/churn:
+    get:
+      consumes:
+      - application/json
+      description: Get members at risk of cancellation with risk scores
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ChurnAnalyticsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get churn prediction
+      tags:
+      - Analytics
+  /analytics/comparative:
+    get:
+      consumes:
+      - application/json
+      description: Get metrics comparison between current month, previous month, and
+        year ago
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ComparativeResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get month-to-month comparison
+      tags:
+      - Analytics
+  /analytics/forecast:
+    get:
+      consumes:
+      - application/json
+      description: Get historical income data and projected future income
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ForecastResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get income forecast
+      tags:
+      - Analytics
+  /auth/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Requires the current password (to prove identity) and a new
+      parameters:
+      - description: Current and new passwords
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Password updated
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - BearerAuth: []
+      summary: Change the authenticated user's password
+      tags:
+      - Auth
+  /auth/check-email:
+    post:
+      consumes:
+      - application/json
+      description: Public endpoint for the registration flow. Returns whether
+      parameters:
+      - description: Email to check
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CheckEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CheckEmailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+      summary: Check if an email is already registered
+      tags:
+      - Auth
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send a password reset link to the staff's email
+      parameters:
+      - description: Email address
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content (Always returned for security)
+      summary: Request password reset
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate staff member and get JWT token. If user belongs to
+        multiple companies, returns a company selector.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/staff.LoginResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      summary: Staff login
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate JWT token and end the active session
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - BearerAuth: []
+      summary: Staff logout
+      tags:
+      - Auth
+  /auth/my-companies:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of all active companies the user belongs to
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MyCompaniesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - BearerAuth: []
+      summary: Get all companies for the logged-in user
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new company, provision tenant database, and return JWT
+        token
+      parameters:
+      - description: Registration data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/errs.Response'
+      summary: Register a new company with owner
+      tags:
+      - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset staff password using a valid token
+      parameters:
+      - description: Token and new password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      summary: Reset password
+      tags:
+      - Auth
+  /auth/select-company:
+    post:
+      consumes:
+      - application/json
+      description: Complete login by selecting a company when user belongs to multiple
+        companies
+      parameters:
+      - description: Temp token and selected company ID
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SelectCompanyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      summary: Select company after multi-company login
+      tags:
+      - Auth
+  /auth/switch-company:
+    post:
+      consumes:
+      - application/json
+      description: Switch to a different company while already logged in. User must
+        be a member of the target company.
+      parameters:
+      - description: Target company ID
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SwitchCompanyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - BearerAuth: []
+      summary: Switch to a different company
+      tags:
+      - Auth
+  /auth/validate-code:
+    post:
+      consumes:
+      - application/json
+      description: Check if an invitation code is valid and return associated plan
+        details
+      parameters:
+      - description: Invitation code
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.ValidateInvitationCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ValidateInvitationCodeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+      summary: Validate an invitation code
+      tags:
+      - Auth
+  /companies:
+    get:
+      description: Get a list of all companies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.CompanyListItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: List all companies
+      tags:
+      - Companies
+    post:
+      consumes:
+      - application/json
+      description: Create a new company with initial owner staff member
+      parameters:
+      - description: Company creation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateCompanyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.CompanyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Create a new company
+      tags:
+      - Companies
+  /companies/{id}:
+    delete:
+      description: Soft delete a company (marks as cancelled, triggers async DB deprovision)
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Delete company (soft delete)
+      tags:
+      - Companies
+    get:
+      description: Get a company's details by ID
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CompanyResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get company by ID
+      tags:
+      - Companies
+    put:
+      consumes:
+      - application/json
+      description: Update a company's information
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Company update request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateCompanyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CompanyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Update company
+      tags:
+      - Companies
+  /companies/{id}/hard:
+    delete:
+      description: Permanently delete a company and all its data. Company must be
+        cancelled first.
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Company must be cancelled first
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Hard delete company
+      tags:
+      - Companies
+  /companies/{id}/payments:
+    get:
+      description: Get all payments for a company
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.CompanyPaymentResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: List company payments
+      tags:
+      - Payments
+    post:
+      consumes:
+      - application/json
+      description: Create a new payment for a company
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Payment creation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateCompanyPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.CompanyPaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Create payment
+      tags:
+      - Payments
+  /companies/{id}/staff:
+    get:
+      description: Get all staff members for a company
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.StaffListItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: List company staff
+      tags:
+      - Staff
+    post:
+      consumes:
+      - application/json
+      description: Create a new staff member for a company
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Staff creation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateStaffRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.StaffResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Create staff member
+      tags:
+      - Staff
+  /companies/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update a company's status (pending, active, suspended, cancelled)
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status update request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateCompanyStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CompanyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Update company status
+      tags:
+      - Companies
+  /companies/{id}/subscription:
+    get:
+      description: Get the active subscription for a company
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CompanySubscriptionResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get active subscription
+      tags:
+      - Subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Create a new subscription for a company
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Subscription creation request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateCompanySubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.CompanySubscriptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Create subscription
+      tags:
+      - Subscriptions
+  /companies/{id}/subscriptions:
+    get:
+      description: Get all subscriptions for a company
+      parameters:
+      - description: Company ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.CompanySubscriptionResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: List subscriptions
+      tags:
+      - Subscriptions
+  /companies/search:
+    get:
+      description: Search active companies by name or slug (public endpoint)
+      parameters:
+      - description: Search query
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.CompanySearchItem'
+            type: array
+      summary: Search companies (public)
+      tags:
+      - Companies
+  /companies/slug/{slug}:
+    get:
+      description: Get a company's details by slug
+      parameters:
+      - description: Company slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CompanyResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get company by slug
+      tags:
+      - Companies
+  /contact:
+    post:
+      consumes:
+      - application/json
+      - multipart/form-data
+      description: Submit a contact form (JSON or multipart with optional file attachment).
+      parameters:
+      - description: Contact form data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateContactRequest'
+      - default: landing
+        description: Source of the contact (landing or app)
+        in: header
+        name: X-Contact-Source
+        type: string
+      - description: Optional file attachment (max 5 MB, images/pdf)
+        in: formData
+        name: attachment
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.CreateContactResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new contact request
+      tags:
+      - contact
+  /dashboard/stats:
+    get:
+      consumes:
+      - application/json
+      description: Get statistics for the gym dashboard
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.DashboardStatsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get dashboard statistics
+      tags:
+      - Dashboard
+  /members:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all gym members with their active subscription data
+        (for alerts calculation on frontend)
+      parameters:
+      - description: Filter by status (active, inactive, suspended)
+        in: query
+        name: status
+        type: string
+      - description: Filter by active subscription plan ID
+        in: query
+        name: plan_id
+        type: string
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 20, max: 100)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.PaginatedMembersResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: List all members with subscription info
+      tags:
+      - Members
+    post:
+      consumes:
+      - application/json
+      description: Create a new gym member
+      parameters:
+      - description: Member creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.MemberResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "409":
+          description: Email already registered
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Create a new member
+      tags:
+      - Members
+  /members/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a member by ID
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Delete member
+      tags:
+      - Members
+    get:
+      consumes:
+      - application/json
+      description: Get details of a specific member by ID
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MemberDetailResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get member by ID
+      tags:
+      - Members
+    put:
+      consumes:
+      - application/json
+      description: Update an existing member
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Member update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MemberDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "409":
+          description: Email already registered
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Update member
+      tags:
+      - Members
+  /members/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update the status of a member
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateMemberStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Update member status
+      tags:
+      - Members
+  /members/{id}/subscription:
+    get:
+      consumes:
+      - application/json
+      description: Get the active subscription for a member
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SubscriptionResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get active subscription
+      tags:
+      - Subscriptions
+  /members/{id}/subscriptions:
+    get:
+      consumes:
+      - application/json
+      description: Get all subscriptions for a specific member
+      parameters:
+      - description: Member ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.SubscriptionListItem'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: List subscriptions by member
+      tags:
+      - Subscriptions
+  /members/qr/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Get details of a specific member by QR code
+      parameters:
+      - description: QR Code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MemberDetailResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get member by QR code
+      tags:
+      - Members
+  /payments/{id}/paid:
+    patch:
+      consumes:
+      - application/json
+      description: Mark a payment as paid with optional method and reference
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Payment paid request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.MarkPaymentPaidRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CompanyPaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Mark payment as paid
+      tags:
+      - Payments
+  /payments/pending:
+    get:
+      description: Get all pending payments across all companies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.CompanyPaymentListItem'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: List pending payments
+      tags:
+      - Payments
+  /plans:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all membership plans
+      parameters:
+      - description: Include inactive plans
+        in: query
+        name: show_inactive
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.PlanListItem'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: List all plans
+      tags:
+      - Plans
+    post:
+      consumes:
+      - application/json
+      description: Create a new gym membership plan
+      parameters:
+      - description: Plan creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreatePlanRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.PlanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Create a new plan
+      tags:
+      - Plans
+  /plans/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a plan by ID
+      parameters:
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Delete plan
+      tags:
+      - Plans
+    get:
+      consumes:
+      - application/json
+      description: Get details of a specific plan by ID
+      parameters:
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.PlanResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get plan by ID
+      tags:
+      - Plans
+    put:
+      consumes:
+      - application/json
+      description: Update an existing plan
+      parameters:
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Plan update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdatePlanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.PlanResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Update plan
+      tags:
+      - Plans
+  /plans/{id}/toggle:
+    patch:
+      consumes:
+      - application/json
+      description: Toggle the active status of a plan
+      parameters:
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Toggle plan active status
+      tags:
+      - Plans
+  /public/member/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Get minimal member info for QR display page (no auth required)
+      parameters:
+      - description: Member code (5-digit short code)
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.PublicMemberQRResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      summary: Get member QR code (public)
+      tags:
+      - Public
+  /reports/export:
+    get:
+      consumes:
+      - application/json
+      description: Generate and download a report in PDF or Excel format
+      parameters:
+      - description: Report type
+        enum:
+        - members
+        - financial
+        - subscriptions
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: Export format
+        enum:
+        - pdf
+        - xlsx
+        in: query
+        name: format
+        required: true
+        type: string
+      - description: Start date for financial reports (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date for financial reports (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/pdf
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      responses:
+        "200":
+          description: Report file
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Export report
+      tags:
+      - Reports
+  /reports/monthly:
+    get:
+      consumes:
+      - application/json
+      description: Get monthly registrations and income reports
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.ReportsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get monthly reports
+      tags:
+      - Reports
+  /staff/{id}:
+    delete:
+      description: Delete a staff member
+      parameters:
+      - description: Staff ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Delete staff member
+      tags:
+      - Staff
+    get:
+      description: Get a staff member's details
+      parameters:
+      - description: Staff ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.StaffResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Get staff member
+      tags:
+      - Staff
+    put:
+      consumes:
+      - application/json
+      description: Update a staff member's information
+      parameters:
+      - description: Staff ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Staff update request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateStaffRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.StaffResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Update staff member
+      tags:
+      - Staff
+  /subscriptions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Cancel a subscription by ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Cancel subscription
+      tags:
+      - Subscriptions
+    patch:
+      consumes:
+      - application/json
+      description: Update a subscription's plan or billing cycle
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Subscription update request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateCompanySubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CompanySubscriptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Update subscription
+      tags:
+      - Subscriptions
+  /subscriptions/{id}/mark-paid:
+    post:
+      consumes:
+      - application/json
+      description: Mark a subscription payment as paid and calculate next payment
+        date
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SubscriptionResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Mark subscription as paid
+      tags:
+      - Subscriptions
+  /subscriptions/{id}/pay:
+    patch:
+      consumes:
+      - application/json
+      description: Register a payment for a subscription
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Payment request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.PaySubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SubscriptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      security:
+      - Bearer: []
+      summary: Register a payment
+      tags:
+      - Subscriptions
+  /subscriptions/upgrade:
+    patch:
+      consumes:
+      - application/json
+      description: Upgrade a company's subscription to a higher plan (no downgrade
+        allowed)
+      parameters:
+      - description: Upgrade request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpgradeSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CompanySubscriptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errs.Response'
+      summary: Upgrade subscription
+      tags:
+      - Subscriptions
+  /verify/{qrCode}:
+    get:
+      consumes:
+      - application/json
+      description: Verify if a member can access the gym by QR code
+      parameters:
+      - description: QR Code
+        in: path
+        name: qrCode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.VerifyMemberResponse'
+        "400":
+          description: Missing X-Tenant-Slug header
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "404":
+          description: Member not found
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/errs.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errs.Response'
+      summary: Verify member access
+      tags:
+      - Verification
+securityDefinitions:
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

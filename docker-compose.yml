@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: base-postgres
+    environment:
+      POSTGRES_USER: base_user
+      POSTGRES_PASSWORD: base_password
+      POSTGRES_DB: base_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U base_user -d base_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - base-network
+
+  # ============================================================================
+  # NATS Message Broker
+  # ============================================================================
+  nats:
+    image: nats:2.10-alpine
+    container_name: base-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"  # Monitoring
+    command: ["--jetstream", "--store_dir=/data", "-m", "8222"]
+    volumes:
+      - nats_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - base-network
+
+volumes:
+  postgres_data:
+  nats_data:
+
+networks:
+  base-network:
+    name: base-network

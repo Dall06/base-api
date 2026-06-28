@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Coverage
+coverage.out
+coverage_*.out
+*.coverprofile
+
+# Environment
+.env
+.env.local
+.env.*.local
+env/.env
+
+# Documentation (not needed in image)
+docs/
+*.md
+!README.md
+
+# Test files
+*_test.go
+testdata/
+
+# Development
+tmp/
+vendor/
