@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Note: Swagger docs are pre-generated and committed to the repo.
       # Run `swag init -g cmd/<service>/main.go -o cmd/<service>/docs` locally
