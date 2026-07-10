@@ -11,12 +11,14 @@ import (
 	"time"
 
 	database "base-api/opt/db"
+	"base-api/opt/middlewares"
+	"base-api/pkg/errs"
 	"base-api/pkg/jwt"
 	"base-api/pkg/logs"
-	"base-api/srv/user/domain"
-	"base-api/srv/user/handlers"
-	"base-api/srv/user/repositories"
-	"base-api/srv/user/usecases"
+	"base-api/srv/users/domain"
+	"base-api/srv/users/handlers"
+	"base-api/srv/users/repositories"
+	"base-api/srv/users/usecases"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -34,7 +36,7 @@ func main() {
 	// Setup logging
 	logs.Setup("info", "user-service", env)
 
-	slog.Info("iniciando servicio de usuario...", slog.String("port", port))
+	slog.Info("iniciando servicio de usuarios...", slog.String("port", port))
 
 	// Conectar a la base de datos
 	db, err := database.Connect(dbURL, 30)
@@ -62,13 +64,16 @@ func main() {
 		Expiration: 24 * time.Hour,
 	})
 
-	// Inicializar capas arquitectónicas
+	// Inicializar capas arquitectónicas (Signup, Login, GetUseCases)
 	userRepo := repositories.NewUserRepository(db)
-	userUC := usecases.NewUserUsecase(userRepo, jwtGen)
-	userHandler := handlers.NewUserHandler(userUC, jwtGen)
+	getUC := usecases.NewGetUseCase(userRepo)
+	signupUC := usecases.NewSignupUseCase(userRepo, jwtGen)
+	loginUC := usecases.NewLoginUseCase(userRepo, jwtGen)
+	userHandler := handlers.NewUserHandler(getUC, signupUC, loginUC)
 
 	// Iniciar Echo
 	e := echo.New()
+	e.HTTPErrorHandler = errs.ErrorHandler
 	e.HideBanner = true
 	e.HidePort = true
 
@@ -78,13 +83,17 @@ func main() {
 	}))
 
 	// Registrar rutas de usuario
-	userHandler.(*handlers.UserHandler).RegisterRoutes(e)
+	h := userHandler.(*handlers.UserHandler)
+	api := e.Group("/api/v1")
+	api.POST("/auth/signup", h.Signup)
+	api.POST("/auth/login", h.Login)
+	api.GET("/users/me", h.GetMe, middlewares.NewJWTAuth(jwtSecret))
 
 	// Servidor HTTP
 	go func() {
 		addr := fmt.Sprintf(":%s", port)
 		if err := e.Start(addr); err != nil && err != http.ErrServerClosed {
-			slog.Error("error en servidor de usuario", slog.String("error", err.Error()))
+			slog.Error("error en servidor de usuarios", slog.String("error", err.Error()))
 			os.Exit(1)
 		}
 	}()
@@ -94,16 +103,16 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	slog.Info("deteniendo servicio de usuario...")
+	slog.Info("deteniendo servicio de usuarios...")
 
 	ctxShutdown, cancelShutdown := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelShutdown()
 
 	if err := e.Shutdown(ctxShutdown); err != nil {
-		slog.Error("error durante apagado del servicio de usuario", slog.String("error", err.Error()))
+		slog.Error("error durante apagado del servicio de usuarios", slog.String("error", err.Error()))
 	}
 
-	slog.Info("servicio de usuario detenido")
+	slog.Info("servicio de usuarios detenido")
 }
 
 func getEnv(key, defaultValue string) string {

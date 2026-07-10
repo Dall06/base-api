@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"base-api/pkg/errs"
-	"base-api/srv/user/domain"
-	"base-api/srv/user/ports"
+	"base-api/srv/users/domain"
+	"base-api/srv/users/ports"
 
 	"github.com/google/uuid"
 )

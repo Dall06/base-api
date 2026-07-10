@@ -7,14 +7,13 @@ import (
 
 	"base-api/pkg/errs"
 	"base-api/pkg/jwt"
-	"base-api/srv/user/domain"
-	"base-api/srv/user/ports"
-	"base-api/srv/user/repositories"
+	"base-api/srv/users/domain"
+	"base-api/srv/users/repositories"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUserUsecase_SignupAndLogin(t *testing.T) {
+func TestLoginUseCase_Login(t *testing.T) {
 	jwtGen := jwt.NewGenerator(jwt.Config{
 		Secret:     "test-secret",
 		Expiration: 1 * time.Hour,
@@ -22,32 +21,13 @@ func TestUserUsecase_SignupAndLogin(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		action        string // "signup" o "login"
 		email         string
 		password      string
-		nameVal       string
 		expectedErr   error
-		setupRepoUser *domain.User // pre-load user for login test cases
+		setupRepoUser *domain.User
 	}{
 		{
-			name:        "Signup exitoso",
-			action:      "signup",
-			email:       "juan@example.com",
-			password:    "password123",
-			nameVal:     "Juan Perez",
-			expectedErr: nil,
-		},
-		{
-			name:        "Signup fallido - usuario duplicado",
-			action:      "signup",
-			email:       "juan@example.com",
-			password:    "otrapassword",
-			nameVal:     "Juan Perez",
-			expectedErr: errs.ErrConflict,
-		},
-		{
 			name:        "Login exitoso",
-			action:      "login",
 			email:       "pedro@example.com",
 			password:    "pedropass",
 			expectedErr: nil,
@@ -58,7 +38,6 @@ func TestUserUsecase_SignupAndLogin(t *testing.T) {
 		},
 		{
 			name:        "Login fallido - contraseña incorrecta",
-			action:      "login",
 			email:       "pedro@example.com",
 			password:    "claveincorrecta",
 			expectedErr: errs.ErrUnauthorized,
@@ -69,7 +48,6 @@ func TestUserUsecase_SignupAndLogin(t *testing.T) {
 		},
 		{
 			name:        "Login fallido - usuario inexistente",
-			action:      "login",
 			email:       "inexistente@example.com",
 			password:    "algunaclave",
 			expectedErr: errs.ErrUnauthorized,
@@ -79,35 +57,17 @@ func TestUserUsecase_SignupAndLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			repo := repositories.NewMemoryUserRepository()
-			uc := NewUserUsecase(repo, jwtGen)
+			uc := NewLoginUseCase(repo, jwtGen)
 			ctx := context.Background()
 
-			// Pre-cargar usuario si aplica
 			if tt.setupRepoUser != nil {
 				_, _ = repo.Create(ctx, tt.setupRepoUser)
 			}
 
-			// Para el caso de duplicados en signup, pre-crear el usuario
-			if tt.action == "signup" && tt.expectedErr == errs.ErrConflict {
-				u, _ := domain.NewUser("existing-id", tt.email, "pwd", "Juan")
-				_, _ = repo.Create(ctx, u)
-			}
-
-			var res *ports.AuthResponse
-			var err error
-
-			if tt.action == "signup" {
-				res, err = uc.Signup(ctx, ports.SignupInput{
-					Email:    tt.email,
-					Password: tt.password,
-					Name:     tt.nameVal,
-				})
-			} else {
-				res, err = uc.Login(ctx, ports.LoginInput{
-					Email:    tt.email,
-					Password: tt.password,
-				})
-			}
+			res, err := uc.Login(ctx, domain.LoginRequest{
+				Email:    tt.email,
+				Password: tt.password,
+			})
 
 			if tt.expectedErr != nil {
 				assert.Error(t, err)

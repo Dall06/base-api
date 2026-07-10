@@ -13,16 +13,14 @@ type Response struct {
 	Error string `json:"error"`
 }
 
-// Handle returns an echo JSON response with the appropriate status code.
-// For 5xx responses it ALSO logs the underlying error and unwrap chain plus the
-// caller location, so server-side operators can see the real cause even when
-// the client body is a generic "internal error" message.
-func Handle(ctx echo.Context, err error) error {
+// ErrorHandler is a custom HTTP error handler for Echo.
+func ErrorHandler(err error, ctx echo.Context) {
+	if ctx.Response().Committed {
+		return
+	}
 	status := RestCode(err)
 	if status >= 500 {
-		// Capture the call site of Handle so we can see who emitted the error.
 		_, file, line, _ := runtime.Caller(1)
-		// Walk the wrapped errors to get the full chain.
 		chain := err.Error()
 		for inner := errors.Unwrap(err); inner != nil; inner = errors.Unwrap(inner) {
 			chain += " | " + inner.Error()
@@ -41,7 +39,13 @@ func Handle(ctx echo.Context, err error) error {
 	if status >= 500 {
 		msg = "internal error"
 	}
-	return ctx.JSON(status, Response{Error: msg})
+	_ = ctx.JSON(status, Response{Error: msg})
+}
+
+// Handle returns an echo JSON response with the appropriate status code.
+func Handle(ctx echo.Context, err error) error {
+	ErrorHandler(err, ctx)
+	return nil
 }
 
 func RestCode(err error) int {
