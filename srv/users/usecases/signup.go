@@ -3,6 +3,9 @@ package usecases
 import (
 	"context"
 
+	"time"
+
+	"base-api/pkg/crypto"
 	"base-api/pkg/errs"
 	"base-api/pkg/jwt"
 	"base-api/srv/users/domain"
@@ -30,9 +33,19 @@ func (uc *SignupUseCase) Signup(ctx context.Context, req domain.SignupRequest) (
 	}
 
 	id := uuid.New().String()
-	user, err := domain.NewUser(id, req.Email, req.Password, req.Name)
+	hashed, err := crypto.HashPassword(req.Password)
 	if err != nil {
-		return nil, errs.InternalError("error al crear usuario: %v", err)
+		return nil, errs.InternalError("error al hashear password: %v", err)
+	}
+
+	now := time.Now()
+	user := &domain.User{
+		ID:           id,
+		Email:        req.Email,
+		PasswordHash: hashed,
+		Name:         req.Name,
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 
 	saved, err := uc.repo.Create(ctx, user)

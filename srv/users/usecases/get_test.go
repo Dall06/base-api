@@ -15,7 +15,7 @@ func TestGetUseCase_GetByID(t *testing.T) {
 	uc := NewGetUseCase(repo)
 	ctx := context.Background()
 
-	u, _ := domain.NewUser("test-id", "test@example.com", "pwd", "Test User")
+	u := &domain.User{ID: "test-id", Email: "test@example.com", Name: "Test User"}
 	_, _ = repo.Create(ctx, u)
 
 	t.Run("GetByID exitoso", func(t *testing.T) {

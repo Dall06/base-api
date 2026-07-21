@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 
+	"base-api/pkg/crypto"
 	"base-api/pkg/errs"
 	"base-api/pkg/jwt"
 	"base-api/srv/users/domain"
@@ -27,7 +28,7 @@ func (uc *LoginUseCase) Login(ctx context.Context, req domain.LoginRequest) (*do
 		return nil, errs.UnauthorizedError("credenciales inválidas")
 	}
 
-	if !user.CheckPassword(req.Password) {
+	if !crypto.CheckPassword(user.PasswordHash, req.Password) {
 		return nil, errs.UnauthorizedError("credenciales inválidas")
 	}
 

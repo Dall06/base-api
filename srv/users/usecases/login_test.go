@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"base-api/pkg/crypto"
 	"base-api/pkg/errs"
 	"base-api/pkg/jwt"
 	"base-api/srv/users/domain"
@@ -32,8 +33,8 @@ func TestLoginUseCase_Login(t *testing.T) {
 			password:    "pedropass",
 			expectedErr: nil,
 			setupRepoUser: func() *domain.User {
-				u, _ := domain.NewUser("1", "pedro@example.com", "pedropass", "Pedro")
-				return u
+				hashed, _ := crypto.HashPassword("pedropass")
+				return &domain.User{ID: "1", Email: "pedro@example.com", PasswordHash: hashed, Name: "Pedro"}
 			}(),
 		},
 		{
@@ -42,8 +43,8 @@ func TestLoginUseCase_Login(t *testing.T) {
 			password:    "claveincorrecta",
 			expectedErr: errs.ErrUnauthorized,
 			setupRepoUser: func() *domain.User {
-				u, _ := domain.NewUser("1", "pedro@example.com", "pedropass", "Pedro")
-				return u
+				hashed, _ := crypto.HashPassword("pedropass")
+				return &domain.User{ID: "1", Email: "pedro@example.com", PasswordHash: hashed, Name: "Pedro"}
 			}(),
 		},
 		{

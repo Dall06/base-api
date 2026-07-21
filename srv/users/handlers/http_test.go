@@ -32,7 +32,7 @@ func TestUserHandler_Signup(t *testing.T) {
 				Name:     "Test",
 			},
 			mockSignup: func(ctx context.Context, req domain.SignupRequest) (*domain.AuthResponse, error) {
-				u, _ := domain.NewUser("1", "test@test.com", "hash", "Test")
+				u := &domain.User{ID: "1", Email: "test@test.com", PasswordHash: "hash", Name: "Test"}
 				return &domain.AuthResponse{User: u, Token: "t"}, nil
 			},
 			wantStatus: http.StatusCreated,
@@ -102,7 +102,7 @@ func TestUserHandler_Login(t *testing.T) {
 				Password: "password",
 			},
 			mockLogin: func(ctx context.Context, req domain.LoginRequest) (*domain.AuthResponse, error) {
-				u, _ := domain.NewUser("1", "test@test.com", "hash", "Test")
+				u := &domain.User{ID: "1", Email: "test@test.com", PasswordHash: "hash", Name: "Test"}
 				return &domain.AuthResponse{User: u, Token: "t"}, nil
 			},
 			wantStatus: http.StatusOK,
@@ -171,7 +171,7 @@ func TestUserHandler_GetMe(t *testing.T) {
 			paramID:   "1",
 			ctxUserID: nil,
 			mockGet: func(ctx context.Context, id string) (*domain.User, error) {
-				u, _ := domain.NewUser("1", "test@test.com", "hash", "Test")
+				u := &domain.User{ID: "1", Email: "test@test.com", PasswordHash: "hash", Name: "Test"}
 				return u, nil
 			},
 			wantStatus: http.StatusOK,
@@ -181,7 +181,7 @@ func TestUserHandler_GetMe(t *testing.T) {
 			paramID:   "",
 			ctxUserID: "2",
 			mockGet: func(ctx context.Context, id string) (*domain.User, error) {
-				u, _ := domain.NewUser("2", "test2@test.com", "hash", "Test 2")
+				u := &domain.User{ID: "2", Email: "test2@test.com", PasswordHash: "hash", Name: "Test 2"}
 				return u, nil
 			},
 			wantStatus: http.StatusOK,

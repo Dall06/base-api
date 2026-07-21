@@ -52,7 +52,7 @@ func TestSignupUseCase_Signup(t *testing.T) {
 			ctx := context.Background()
 
 			if tt.preCreate {
-				u, _ := domain.NewUser("existing-id", tt.email, "pwd", "Juan")
+				u := &domain.User{ID: "existing-id", Email: tt.email, Name: "Juan"}
 				_, _ = repo.Create(ctx, u)
 			}
 
